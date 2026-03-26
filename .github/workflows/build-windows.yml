@@ -1,0 +1,92 @@
+name: Build LexifyReview Windows EXE
+
+on:
+  push:
+    tags:
+      - 'v*'  # Chỉ build khi tạo tag như v1.0, v1.1
+  workflow_dispatch:  # Cho phép chạy thủ công từ GitHub
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install playwright==1.58.0 playwright-stealth==2.0.2 pyinstaller==6.13.0
+
+      - name: Install Chromium browser
+        run: python -m playwright install chromium
+
+      - name: Find Chromium path
+        id: chromium
+        shell: python
+        run: |
+          import os, glob
+          # Playwright stores browsers in LOCALAPPDATA/ms-playwright
+          base = os.path.join(os.environ['LOCALAPPDATA'], 'ms-playwright')
+          print(f"Browsers path: {base}")
+          print(f"Exists: {os.path.exists(base)}")
+          if os.path.exists(base):
+              for item in os.listdir(base):
+                  print(f"  {item}")
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f"browsers_path={base}\n")
+
+      - name: Build EXE with PyInstaller
+        run: |
+          pyinstaller --onedir ^
+            --name LexifyReview ^
+            --windowed ^
+            --noconfirm ^
+            --clean ^
+            --add-data "shopify_reviews_gui.py;." ^
+            --hidden-import playwright ^
+            --hidden-import playwright.sync_api ^
+            --hidden-import playwright_stealth ^
+            --collect-all playwright ^
+            --collect-all playwright_stealth ^
+            windows_build/lexifyreview_launcher.py
+        shell: cmd
+
+      - name: Bundle Chromium into dist
+        run: |
+          xcopy /E /I /Y "${{ steps.chromium.outputs.browsers_path }}" "dist\LexifyReview\_playwright_browsers"
+        shell: cmd
+
+      - name: Create run script
+        run: |
+          echo @echo off > dist\LexifyReview\LexifyReview_Run.bat
+          echo cd /d "%%~dp0" >> dist\LexifyReview\LexifyReview_Run.bat
+          echo set PLAYWRIGHT_BROWSERS_PATH=%%~dp0_playwright_browsers >> dist\LexifyReview\LexifyReview_Run.bat
+          echo start LexifyReview.exe >> dist\LexifyReview\LexifyReview_Run.bat
+        shell: cmd
+
+      - name: Copy README
+        run: copy windows_build\HUONG_DAN.txt dist\LexifyReview\HUONG_DAN.txt
+        shell: cmd
+
+      - name: Zip for distribution
+        run: Compress-Archive -Path "dist\LexifyReview\*" -DestinationPath "LexifyReview_Windows_Standalone.zip"
+        shell: pwsh
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LexifyReview-Windows
+          path: LexifyReview_Windows_Standalone.zip
+          retention-days: 90
+
+      - name: Upload to Release (if tag)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: LexifyReview_Windows_Standalone.zip
+          generate_release_notes: true

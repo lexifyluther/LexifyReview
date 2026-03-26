@@ -1,0 +1,11 @@
+venv/
+dist/
+build/
+__pycache__/
+*.spec
+*.csv
+*.log
+.claude/
+debug*.py
+inspect_*.py
+test_*.py

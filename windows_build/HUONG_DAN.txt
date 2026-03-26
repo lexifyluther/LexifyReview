@@ -1,0 +1,47 @@
+============================================================
+  LexifyReview - Shopify App Store Review Scraper
+  Hướng dẫn cài đặt và sử dụng (Windows)
+============================================================
+
+━━━ CÁCH 1: Cài đặt nhanh (cần Python) ━━━
+
+  1. Cài Python từ https://www.python.org/downloads/
+     ⚠️ QUAN TRỌNG: Tick chọn "Add Python to PATH" khi cài!
+
+  2. Double-click file "LexifyReview_Install.bat"
+     → Tự động cài thư viện + tải Chromium
+
+  3. Double-click file "LexifyReview.bat" để chạy app
+     → Từ lần sau chỉ cần click file này
+
+
+━━━ CÁCH 2: Build file EXE (chia sẻ không cần Python) ━━━
+
+  1. Làm Cách 1 trước (cài Python + thư viện)
+
+  2. Double-click "build_exe.bat"
+     → Tạo file EXE trong thư mục dist\LexifyReview\
+
+  3. Nén thư mục dist\LexifyReview thành file .zip
+     → Gửi file .zip cho người khác
+     → Họ chỉ cần giải nén và click LexifyReview.exe
+
+
+━━━ CÁCH DÙNG APP ━━━
+
+  1. Nhập từ khóa (vd: "email marketing") → Nhấn Tìm kiếm
+  2. Nhập số app muốn lấy (lấy từ trên xuống)
+  3. Nhập số review tối đa / app (để trống = lấy hết)
+  4. Tick chọn mức sao muốn lọc (1-5)
+  5. Nhấn ▶ Bắt đầu
+  6. Giữa chừng: ⏸ Tạm dừng / 💾 Export CSV / ⏹ Dừng
+
+
+━━━ YÊU CẦU HỆ THỐNG ━━━
+
+  - Windows 10/11
+  - Python 3.10+ (nếu dùng Cách 1)
+  - Kết nối internet
+  - RAM: 4GB+
+
+============================================================
