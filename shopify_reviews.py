@@ -445,7 +445,12 @@ def parse_single_review(text, stars):
 # ============================================================
 def scrape_app_reviews(page, app_slug, state):
     """Scrape reviews for one app, respecting state (pause/quit/limit)."""
-    review_url = f"{BASE_URL}/{app_slug}/reviews"
+    # Build URL with star filter from state
+    if state.star_filter == {1, 2, 3, 4, 5}:
+        review_url = f"{BASE_URL}/{app_slug}/reviews"
+    else:
+        rating_params = '&'.join(f'ratings%5B%5D={s}' for s in sorted(state.star_filter))
+        review_url = f"{BASE_URL}/{app_slug}/reviews?{rating_params}"
 
     print(f"   📖 Đang lấy reviews...")
     fast_goto(page, review_url, wait_selector='text=using the app')

@@ -547,7 +547,12 @@ class ShopifyScraperApp:
                         context = create_stealth_context(browser)
                         page = create_stealth_page(context)
 
-                        review_url = f"{BASE_URL}/{app['slug']}/reviews"
+                        # Build URL with star filter
+                        rating_params = '&'.join(f'ratings%5B%5D={s}' for s in sorted(star_filter))
+                        if star_filter == {1, 2, 3, 4, 5}:
+                            review_url = f"{BASE_URL}/{app['slug']}/reviews"
+                        else:
+                            review_url = f"{BASE_URL}/{app['slug']}/reviews?{rating_params}"
                         fast_goto(page, review_url, wait_selector='text=using the app')
                         human_delay(1.0, 2.0)
 
