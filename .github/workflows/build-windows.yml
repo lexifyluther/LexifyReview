@@ -6,6 +6,9 @@ on:
       - 'v*'  # Chỉ build khi tạo tag như v1.0, v1.1
   workflow_dispatch:  # Cho phép chạy thủ công từ GitHub
 
+permissions:
+  contents: write
+
 jobs:
   build-windows:
     runs-on: windows-latest
