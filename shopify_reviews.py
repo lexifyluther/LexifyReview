@@ -263,8 +263,12 @@ def search_apps(page, keyword):
             }
             const cardText = card.innerText;
 
-            const ratingMatch = cardText.match(/(\\d+\\.\\d+)\\s*\\nout of 5 stars/);
-            const countMatch = cardText.match(/\\(([\\d,]+)\\)\\s*\\n[\\d,]+ total reviews/);
+            const ratingMatch = cardText.match(/(\\d+\\.\\d+)\\s*\\n?\\s*out of 5 stars/) ||
+                                cardText.match(/Overall rating\\s*\\n?(\\d+\\.\\d+)/) ||
+                                cardText.match(/(\\d+\\.\\d+)\\s*out of 5/);
+            const countMatch = cardText.match(/\\(([\\d,]+)\\)\\s*\\n?\\s*[\\d,]+ total reviews/) ||
+                               cardText.match(/Reviews\\s*\\(([\\d,]+)\\)/) ||
+                               cardText.match(/(\\d[\\d,]+)\\s*total reviews/);
 
             results.push({
                 slug: slug,
@@ -282,6 +286,36 @@ def search_apps(page, keyword):
 # ============================================================
 #  Extract & parse reviews
 # ============================================================
+def get_app_info_from_review_page(page):
+    """Extract app rating and review count from the review page header."""
+    return page.evaluate("""
+    () => {
+        const body = document.body.innerText;
+        let rating = '';
+        let reviewCount = '';
+
+        const ariaEl = document.querySelector('[aria-label*="out of 5 stars"]');
+        if (ariaEl) {
+            const m = ariaEl.getAttribute('aria-label').match(/(\\d+\\.?\\d*)\\s*out of 5/);
+            if (m) rating = m[1];
+        }
+        if (!rating) {
+            const m = body.match(/Overall rating\\s*\\n?(\\d+\\.\\d+)/) ||
+                      body.match(/(\\d+\\.\\d+)\\s*\\n?\\s*out of 5 stars/) ||
+                      body.match(/(\\d+\\.\\d+)\\s*out of 5/);
+            if (m) rating = m[1];
+        }
+
+        const cm = body.match(/Reviews\\s*\\(([\\d,]+)\\)/) ||
+                   body.match(/\\(([\\d,]+)\\)\\s*\\n?\\s*[\\d,]+ total reviews/) ||
+                   body.match(/(\\d[\\d,]+)\\s*total reviews/);
+        if (cm) reviewCount = cm[1].replace(/,/g, '');
+
+        return { rating: rating, review_count: reviewCount };
+    }
+    """)
+
+
 def get_reviews_from_page(page):
     """Extract raw reviews from current page DOM."""
     reviews = page.evaluate("""
@@ -416,6 +450,14 @@ def scrape_app_reviews(page, app_slug, state):
     print(f"   📖 Đang lấy reviews...")
     fast_goto(page, review_url, wait_selector='text=using the app')
     human_delay(1.0, 2.0)
+
+    # Get rating/count from review page (fills in if search missed it)
+    page_info = get_app_info_from_review_page(page)
+    if state.current_app:
+        if not state.current_app.get('rating') and page_info.get('rating'):
+            state.current_app['rating'] = page_info['rating']
+        if not state.current_app.get('review_count') and page_info.get('review_count'):
+            state.current_app['review_count'] = page_info['review_count']
 
     page_num = 1
     max_pages = 500  # safety limit

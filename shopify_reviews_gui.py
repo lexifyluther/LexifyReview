@@ -120,8 +120,13 @@ def search_apps(page, keyword):
                 if (card.innerText.includes('out of 5 stars')) break;
             }
             const cardText = card.innerText;
-            const ratingMatch = cardText.match(/(\\d+\\.\\d+)\\s*\\nout of 5 stars/);
-            const countMatch = cardText.match(/\\(([\\d,]+)\\)\\s*\\n[\\d,]+ total reviews/);
+            // Multiple patterns to handle different renders (with/without CSS)
+            const ratingMatch = cardText.match(/(\\d+\\.\\d+)\\s*\\n?\\s*out of 5 stars/) ||
+                                cardText.match(/Overall rating\\s*\\n?(\\d+\\.\\d+)/) ||
+                                cardText.match(/(\\d+\\.\\d+)\\s*out of 5/);
+            const countMatch = cardText.match(/\\(([\\d,]+)\\)\\s*\\n?\\s*[\\d,]+ total reviews/) ||
+                               cardText.match(/Reviews\\s*\\(([\\d,]+)\\)/) ||
+                               cardText.match(/(\\d[\\d,]+)\\s*total reviews/);
             results.push({
                 slug: slug,
                 name: name,
@@ -130,6 +135,39 @@ def search_apps(page, keyword):
             });
         }
         return results;
+    }
+    """)
+
+
+def get_app_info_from_review_page(page):
+    """Extract app rating and review count from the review page header."""
+    return page.evaluate("""
+    () => {
+        const body = document.body.innerText;
+        let rating = '';
+        let reviewCount = '';
+
+        // Rating: try aria-label first (most reliable)
+        const ariaEl = document.querySelector('[aria-label*="out of 5 stars"]');
+        if (ariaEl) {
+            const m = ariaEl.getAttribute('aria-label').match(/(\\d+\\.?\\d*)\\s*out of 5/);
+            if (m) rating = m[1];
+        }
+        // Fallback: text patterns
+        if (!rating) {
+            const m = body.match(/Overall rating\\s*\\n?(\\d+\\.\\d+)/) ||
+                      body.match(/(\\d+\\.\\d+)\\s*\\n?\\s*out of 5 stars/) ||
+                      body.match(/(\\d+\\.\\d+)\\s*out of 5/);
+            if (m) rating = m[1];
+        }
+
+        // Review count: "Reviews (1,805)" or "(1,805)\\n1805 total reviews"
+        const cm = body.match(/Reviews\\s*\\(([\\d,]+)\\)/) ||
+                   body.match(/\\(([\\d,]+)\\)\\s*\\n?\\s*[\\d,]+ total reviews/) ||
+                   body.match(/(\\d[\\d,]+)\\s*total reviews/);
+        if (cm) reviewCount = cm[1].replace(/,/g, '');
+
+        return { rating: rating, review_count: reviewCount };
     }
     """)
 
@@ -512,6 +550,18 @@ class ShopifyScraperApp:
                         review_url = f"{BASE_URL}/{app['slug']}/reviews"
                         fast_goto(page, review_url, wait_selector='text=using the app')
                         human_delay(1.0, 2.0)
+
+                        # Get rating/count from review page (fills in if search missed it)
+                        page_info = get_app_info_from_review_page(page)
+                        if page_info.get('rating') and not app.get('rating'):
+                            app['rating'] = page_info['rating']
+                        if page_info.get('review_count') and not app.get('review_count'):
+                            app['review_count'] = page_info['review_count']
+                        # Always overwrite if search had empty values
+                        if not app.get('rating'):
+                            app['rating'] = page_info.get('rating', '')
+                        if not app.get('review_count'):
+                            app['review_count'] = page_info.get('review_count', '')
 
                         page_num = 1
                         while page_num <= 500:
