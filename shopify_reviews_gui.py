@@ -264,7 +264,7 @@ def parse_single_review(text, stars):
 class ShopifyScraperApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("LexifyReview - Shopify App Store Review Scraper")
+        self.root.title("LexifyReview v1.2 - Shopify App Store Review Scraper")
         self.root.geometry("880x720")
         self.root.minsize(800, 650)
 
