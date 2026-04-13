@@ -1,0 +1,28 @@
+======================================
+  LexifyReview - Hướng dẫn cài Mac
+======================================
+
+YÊU CẦU:
+  - macOS 10.15 trở lên
+  - Python 3.9+ (tải tại: https://www.python.org/downloads/)
+  - Kết nối Internet (để tải Chromium lần đầu)
+
+CÀI ĐẶT (chỉ làm 1 lần):
+  1. Giải nén file zip này
+  2. Mở Terminal
+  3. Kéo file "LexifyReview_Mac_Install.sh" vào Terminal, nhấn Enter
+  4. Chờ cài xong (~3-5 phút)
+  5. App sẽ xuất hiện trong Applications
+
+CHẠY APP:
+  - Mở Launchpad → tìm "LexifyReview"
+  - Hoặc vào Applications → LexifyReview.app
+
+LẦN ĐẦU MỞ APP (nếu bị chặn):
+  - Mac có thể hỏi "cannot be opened because the developer cannot be verified"
+  - Giải pháp: Right-click vào app → Open → Open
+  - Hoặc: System Settings → Privacy & Security → cuộn xuống → "Open Anyway"
+
+LIÊN HỆ HỖ TRỢ:
+  Email: linhtdglobal@gmail.com
+======================================
