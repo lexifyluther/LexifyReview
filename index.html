@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LexifyReview - Shopify App Store Review Scraper</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0d1117;
+            color: #c9d1d9;
+            line-height: 1.6;
+        }
+        .container { max-width: 900px; margin: 0 auto; padding: 60px 24px; }
+
+        .hero { text-align: center; margin-bottom: 60px; }
+        .hero h1 {
+            font-size: 2.8em;
+            background: linear-gradient(135deg, #58a6ff, #3fb950);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 16px;
+        }
+        .hero .tagline { font-size: 1.2em; color: #8b949e; }
+        .hero .version {
+            display: inline-block;
+            background: #238636;
+            color: #fff;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            margin-top: 12px;
+        }
+
+        .badges { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+        .badge {
+            background: #21262d;
+            border: 1px solid #30363d;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            color: #8b949e;
+        }
+
+        section { margin-bottom: 48px; }
+        section h2 {
+            font-size: 1.5em;
+            color: #58a6ff;
+            border-bottom: 1px solid #21262d;
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+        }
+
+        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .feature-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            transition: border-color 0.2s;
+        }
+        .feature-card:hover { border-color: #58a6ff; }
+        .feature-card .icon { font-size: 1.8em; margin-bottom: 10px; }
+        .feature-card h3 { font-size: 1.05em; color: #e6edf3; margin-bottom: 8px; }
+        .feature-card p { font-size: 0.9em; color: #8b949e; }
+
+        .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .mode-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 24px;
+        }
+        .mode-card h3 { color: #3fb950; margin-bottom: 10px; }
+        .mode-card p { color: #8b949e; font-size: 0.9em; margin-bottom: 8px; }
+        .mode-card code {
+            display: block;
+            background: #0d1117;
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin-top: 12px;
+            font-size: 0.85em;
+            color: #d2a8ff;
+        }
+
+        .install-steps { list-style: none; }
+        .install-steps li {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 14px 18px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .install-steps .num {
+            background: #238636;
+            color: #fff;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9em;
+            flex-shrink: 0;
+        }
+        .install-steps code {
+            background: #0d1117;
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: #d2a8ff;
+            font-size: 0.9em;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+        }
+        .ctrl-item {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .ctrl-item .key {
+            background: #21262d;
+            border: 1px solid #30363d;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-weight: bold;
+            color: #e6edf3;
+            flex-shrink: 0;
+        }
+        .ctrl-item .desc { font-size: 0.85em; color: #8b949e; }
+
+        .csv-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85em;
+            margin-top: 12px;
+        }
+        .csv-table th, .csv-table td {
+            border: 1px solid #30363d;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        .csv-table th { background: #161b22; color: #58a6ff; }
+        .csv-table td { color: #8b949e; }
+
+        .links { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.85; }
+        .btn-primary { background: #238636; color: #fff; }
+        .btn-secondary { background: #21262d; color: #c9d1d9; border: 1px solid #30363d; }
+
+        footer { text-align: center; color: #484f58; font-size: 0.85em; margin-top: 60px; }
+        @media (max-width: 600px) { .modes { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Hero -->
+        <header class="hero">
+            <h1>LexifyReview</h1>
+            <p class="tagline">Công cụ scrape reviews từ Shopify App Store - nhanh, chống detect, có GUI</p>
+            <span class="version">v3.0</span>
+            <div class="badges">
+                <span class="badge">Python 3</span>
+                <span class="badge">Playwright</span>
+                <span class="badge">Stealth Mode</span>
+                <span class="badge">GUI + CLI</span>
+                <span class="badge">macOS & Windows</span>
+            </div>
+        </header>
+
+        <!-- Overview -->
+        <section>
+            <h2>Tổng quan</h2>
+            <p>LexifyReview là công cụ mạnh mẽ giúp bạn <strong>thu thập reviews</strong> từ Shopify App Store một cách tự động. Hỗ trợ tìm kiếm theo từ khóa hoặc danh mục, lọc theo số sao, giới hạn số lượng reviews, và xuất dữ liệu ra CSV.</p>
+            <br>
+            <p>Được xây dựng với <strong>playwright-stealth</strong> để tránh bị phát hiện, cùng với delays ngẫu nhiên và user-agent xoay vòng mô phỏng hành vi người dùng thật.</p>
+        </section>
+
+        <!-- Features -->
+        <section>
+            <h2>Tính năng</h2>
+            <div class="features">
+                <div class="feature-card">
+                    <div class="icon">&#x1F50D;</div>
+                    <h3>Tìm kiếm linh hoạt</h3>
+                    <p>Tìm theo từ khóa (broad match) hoặc từ khóa trong ngoặc kép (fuzzy match). Hoặc chọn từ 122 danh mục Shopify.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">&#x2B50;</div>
+                    <h3>Lọc theo sao</h3>
+                    <p>Chọn mức sao muốn lấy: 1,2,3,4,5 hoặc bất kỳ tổ hợp nào.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">&#x1F4CA;</div>
+                    <h3>App Info Scraper</h3>
+                    <p>Thu thập thông tin chi tiết: giá, developer, ngày ra mắt, ngôn ngữ, demo store, pricing model...</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">&#x23F8;&#xFE0F;</div>
+                    <h3>Pause / Resume / Export</h3>
+                    <p>Dừng và tiếp tục bất cứ lúc nào. Export CSV giữa chừng mà không mất dữ liệu.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">&#x1F6E1;&#xFE0F;</div>
+                    <h3>Chống detect</h3>
+                    <p>Playwright-stealth, user-agent xoay vòng, delays ngẫu nhiên, block images/fonts để tăng tốc.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">&#x1F4BE;</div>
+                    <h3>Export CSV đầy đủ</h3>
+                    <p>Xuất ra CSV với UTF-8 BOM, sẵn sàng mở trong Excel. Đầy đủ các cột dữ liệu.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Two modes -->
+        <section>
+            <h2>Hai chế độ sử dụng</h2>
+            <div class="modes">
+                <div class="mode-card">
+                    <h3>&#x1F4BB; CLI</h3>
+                    <p>Dành cho terminal, chạy headless. Phù hợp automation, chạy trên server.</p>
+                    <code>caffeinate -dims python3 shopify_reviews.py</code>
+                </div>
+                <div class="mode-card">
+                    <h3>&#x1FA9; GUI (LexifyReview)</h3>
+                    <p>Giao diện Tkinter trực quan với 2 tab: Scrape Reviews và App Info. Dễ dùng, không cần nhớ lệnh.</p>
+                    <code>python3 shopify_reviews_gui.py</code>
+                </div>
+            </div>
+        </section>
+
+        <!-- Install -->
+        <section>
+            <h2>Cài đặt</h2>
+            <ol class="install-steps">
+                <li>
+                    <span class="num">1</span>
+                    <span>Cài dependencies: <code>pip install playwright playwright-stealth</code></span>
+                </li>
+                <li>
+                    <span class="num">2</span>
+                    <span>Cài Chromium cho Playwright: <code>playwright install chromium</code></span>
+                </li>
+                <li>
+                    <span class="num">3</span>
+                    <span>Chạy CLI: <code>python3 shopify_reviews.py</code></span>
+                </li>
+                <li>
+                    <span class="num">4</span>
+                    <span>Hoặc chạy GUI: <code>python3 shopify_reviews_gui.py</code></span>
+                </li>
+            </ol>
+        </section>
+
+        <!-- Controls -->
+        <section>
+            <h2>Điều khiển (CLI)</h2>
+            <div class="controls">
+                <div class="ctrl-item">
+                    <span class="key">p</span>
+                    <span class="desc">Tạm dừng scraping</span>
+                </div>
+                <div class="ctrl-item">
+                    <span class="key">r</span>
+                    <span class="desc">Tiếp tục scraping</span>
+                </div>
+                <div class="ctrl-item">
+                    <span class="key">e</span>
+                    <span class="desc">Export CSV (tiếp tục chạy)</span>
+                </div>
+                <div class="ctrl-item">
+                    <span class="key">q</span>
+                    <span class="desc">Dừng và Export CSV</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Output -->
+        <section>
+            <h2>Dữ liệu đầu ra (CSV)</h2>
+            <table class="csv-table">
+                <thead>
+                    <tr>
+                        <th>Cột</th>
+                        <th>Mô tả</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>App Name</td><td>Tên app trên Shopify App Store</td></tr>
+                    <tr><td>App Rating</td><td>Rating tổng của app (vd: 4.7)</td></tr>
+                    <tr><td>App Review Count</td><td>Tổng số reviews của app</td></tr>
+                    <tr><td>App URL</td><td>Link tới trang app</td></tr>
+                    <tr><td>Reviewer</td><td>Tên người review</td></tr>
+                    <tr><td>Country / Location</td><td>Quốc gia / vị trí của reviewer</td></tr>
+                    <tr><td>Review Date</td><td>Ngày review (vd: January 15, 2025)</td></tr>
+                    <tr><td>Star Rating</td><td>Số sao (1-5)</td></tr>
+                    <tr><td>Usage Time</td><td>Thời gian đã sử dụng app</td></tr>
+                    <tr><td>Review Content</td><td>Nội dung review đầy đủ</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- CTA -->
+        <section style="text-align: center;">
+            <h2>Bắt đầu ngay</h2>
+            <div class="links">
+                <a href="https://github.com/lexifyluther/Shopify-app-review" class="btn btn-primary">&#x1F4E6; GitHub Repo</a>
+                <a href="https://apps.shopify.com" class="btn btn-secondary">&#x1F310; Shopify App Store</a>
+            </div>
+        </section>
+
+        <footer>
+            <p>LexifyReview v3 &mdash; Built with Playwright + Stealth &mdash; For research purposes only</p>
+        </footer>
+    </div>
+</body>
+</html>
